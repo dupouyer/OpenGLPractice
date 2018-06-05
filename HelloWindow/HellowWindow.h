@@ -4,6 +4,7 @@
 #include <iostream>
 #include "HellowWindow.h"
 #include "Shader.h"
+#include "Texture.h"
 
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
