@@ -73,7 +73,6 @@ int main()
 
 		myShader.use();
 		myShader.setVec4("_color", 1.0f, 0.5f, 0.5f, 1.0f);
-		myTexture.use();
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
