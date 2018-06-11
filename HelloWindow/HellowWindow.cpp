@@ -17,6 +17,8 @@ int main()
 	}
 	glfwMakeContextCurrent(window);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetMouseButtonCallback(window, processMouseButtonInput);
+	glfwSetCursorPosCallback(window, processCursorPositionInput);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -73,7 +75,7 @@ int main()
 
 	// 观察矩阵(摄像机观察)
 	glm::mat4 view = glm::mat4(1.0f);
-	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -8.0f));
+	view = glm::lookAt(glm::vec3(0.0f, 0.0f, 3.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 	// 投影矩阵
 	glm::mat4 projection = glm::perspective(glm::radians(60.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 1.0f, 100.0f);
@@ -120,6 +122,12 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+
 		myShader.use();
 		myShader.setVec4("_color", 1.0f,1.0f,1.0f,1.0f);
 		myShader.setMat4("view", view);
@@ -130,7 +138,7 @@ int main()
 		for (int i = 0; i < 10; i++) {
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, cubePos[i]);
-			model = glm::rotate(model,(float)glfwGetTime() * glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
+			//model = glm::rotate(model,(float)glfwGetTime() * glm::radians(20.0f * i), glm::vec3(1.0f, 0.3f, 0.5f));
 			myShader.setMat4("model", model);
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
@@ -156,6 +164,54 @@ void processInput(GLFWwindow* window)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
 		glfwSetWindowShouldClose(window, true);
 	}
+
+	float cameraSpeed = 0.05f;
+
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		cameraPos += cameraFront * cameraSpeed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		cameraPos -= cameraFront * cameraSpeed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+	else if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	}
+}
+
+void processMouseButtonInput(GLFWwindow * window, int button, int action, int mods)
+{
+	if (action == GLFW_PRESS) {
+		switch (button)
+		{
+		case GLFW_MOUSE_BUTTON_RIGHT:
+			cameraRotate = true;
+			break;
+		default:
+			cameraRotate = false;
+			break;
+		}
+	}
+	else {
+		cameraRotate = false;
+	}
+}
+
+void processCursorPositionInput(GLFWwindow * window, double x, double y)
+{
+	float cameraSpeed = 0.005f;
+	if (cameraRotate) {
+		radianY += -(x - lastCursorX) * cameraSpeed;
+		radianX += -(y - lastCursorY) * cameraSpeed;
+
+		glm::mat4 r = glm::rotate(glm::mat4(1.0f), radianX, glm::vec3(1.0f, 0.0f, 0.0f)) * glm::rotate(glm::mat4(1.0f), radianY, glm::vec3(0.0f, 1.0f, 0.0f));
+		cameraFront = glm::normalize((glm::vec3) (r * glm::vec4(glm::vec3(0.0f,0.0f,-1.0f), 1.0f)));
+	}
+
+	lastCursorX = x;
+	lastCursorY = y;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
