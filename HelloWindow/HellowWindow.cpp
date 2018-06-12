@@ -207,11 +207,7 @@ void processCursorPositionInput(GLFWwindow * window, double x, double y)
 		radianX += -(y - lastCursorY) * cameraSpeed;
 	}
 
-	glm::vec3 front;
-	front.x = cos(radianX) * cos(radianY);
-	front.y = sin(radianX);
-	front.z = cos(radianX) * sin(radianY);
-	cameraFront = glm::normalize(front) * 3.0f;
+	cameraFront = glm::quat(glm::vec3(radianX, -radianY, 0)) * glm::vec4(0.0f, 0.0f, -1.0f, 1.0f);
 
 	lastCursorX = x;
 	lastCursorY = y;
